@@ -1,0 +1,76 @@
+-- Jorge Villarrubia Elvira
+
+
+/abolish
+
+create table programadores(dni string primary key, nombre string, dirección string, teléfono string);
+
+create or replace table analistas(dni string primary key, nombre string, dirección string, teléfono string);
+
+create table distribución(códigopr string, dniemp string, horas int, primary key (códigopr, dniemp));
+
+create table proyectos(código string primary key, descripción string, dnidir string);
+
+insert into programadores(dni, nombre, dirección, teléfono) values('1','Jacinto','Jazmín 4','91-8888888');
+insert into programadores(dni, nombre, dirección, teléfono) values('2','Herminia','Rosa 4','91-7777777');
+insert into programadores(dni, nombre, dirección, teléfono) values('3','Calixto','Clavel 3','91-1231231');
+insert into programadores(dni, nombre, dirección, teléfono) values('4','Teodora','Petunia 3','91-6666666');
+
+insert into analistas(dni, nombre, dirección, teléfono) values('4','Teodora','Petunia 3','91-6666666');
+insert into analistas(dni, nombre, dirección, teléfono) values('5','Evaristo','Luna 1','91-1111111');
+insert into analistas(dni, nombre, dirección, teléfono) values('6','Luciana','Júpiter 2','91-8888888');
+insert into analistas(dni, nombre, dirección, teléfono) values('7','Nicodemo','Plutón 3', NULL );
+
+
+insert into distribución(códigopr, dniemp, horas) values('P1','1',10);
+insert into distribución(códigopr, dniemp, horas) values('P1','2',40);
+insert into distribución(códigopr, dniemp, horas) values('P1','4',5);
+insert into distribución(códigopr, dniemp, horas) values('P2','4',10);
+insert into distribución(códigopr, dniemp, horas) values('P3','1',10);
+insert into distribución(códigopr, dniemp, horas) values('P3','3',40);
+insert into distribución(códigopr, dniemp, horas) values('P3','4',5);
+insert into distribución(códigopr, dniemp, horas) values('P3','5',30);
+insert into distribución(códigopr, dniemp, horas) values('P4','4',20);
+insert into distribución(códigopr, dniemp, horas) values('P4','5',10);
+
+insert into proyectos(código, descripción, dnidir) values('P1','Nómina','4');
+insert into proyectos(código, descripción, dnidir) values('P2','Contabilidad','4');
+insert into proyectos(código, descripción, dnidir) values('P3','Producción','5');
+insert into proyectos(código, descripción, dnidir) values('P4','Clientes','5');
+insert into proyectos(código, descripción, dnidir) values('P5','Ventas','6');
+
+empleados := programadores union analistas;
+
+vista1(dni) := project dni (empleados);
+
+select true (vista1);
+
+vista2(dni) := project dni (programadores intersect analistas);
+
+select true (vista2);
+
+dnisEmpleadosTrabajan := project dnidir(proyectos) union project dniemp(distribución);
+
+vista3 (dni) := project dni (empleados) difference (dnisEmpleadosTrabajan) ;
+
+select true(vista3);
+
+proyConAnalistas := project códigopr (select dni = dniemp (distribución product analistas));
+
+vista4(códigopr) := project código(proyectos) difference project códigopr (proyConAnalistas);
+
+select true(vista4);
+
+vista5(dni) := project dni(analistas) intersect project dnidir (proyectos) difference project dni(programadores);
+  
+select true(vista5);
+
+vista6(descripción, nombre, horas) := project descripción, nombre, horas (programadores njoin (rename nuevo_Distribución(código, dni, horas) (distribución) njoin proyectos));
+
+select true(vista6);
+
+dniYTelEmpleados := project dni, teléfono (empleados);
+
+vista7(teléfono) := project teléfono(select dni != dni1 (dniYTelEmpleados njoin rename nuevoEmpleados(dni1, teléfono)(dniYTelEmpleados)));
+
+select true(vista7);
